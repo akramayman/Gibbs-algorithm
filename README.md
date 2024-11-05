@@ -14,11 +14,13 @@ In this matrix we calculate the background which is the frequency of nucleotide 
 
 ## 3) Predictive update step
 Update proﬁle matrix based on motif and background frequencies and pseudocounts which is a small number that we add to the calculation to avoid multiplying and divided by zero.
+
 ![image](https://github.com/user-attachments/assets/f656c4aa-bb72-4bd3-8ba6-59be2cb2360a)
 ![image](https://github.com/user-attachments/assets/408c209e-c447-4e78-a8cd-3d07fa81a70c)
 
 ## 4) Sampling step
 For each possible motif start position, we calculate the ratio of likelihood of next positions from motif vs. background.
+
 ![image](https://github.com/user-attachments/assets/501677b6-7f0e-4f6d-a2c2-3bb46a35a52b)
 
 ## 5) Normalization
