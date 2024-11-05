@@ -1,0 +1,319 @@
+#include <iostream>     // std::cin, std::cout
+#include <fstream>      // std::ifstream
+#include <string>
+#include <time.h>
+#include<cstdint>
+#include <vector>
+#include<iomanip>
+using namespace std;
+int main()
+{
+	char str[256];
+	string seq[200];//the initial all sequences
+	string random[200];//seq after cut
+	string reminder[200];//the reminder of sequences
+	string  x;
+	int cut;
+	int now[200];//to save the work one
+	int prviousArray[200];	//save the previous position for all seq in file
+	bool ok = false;
+	cout << "This project for applied Gibbs algorithm on sequences to find motifs..." << endl;
+	cout << "The maximum sequences can be entered are 200 sequences." << endl;
+	cout << "All sequences muust equal the same length." << endl;
+	std::cout << "Please, enter the name of the existing sequences file: "; //users/dell/desktop/graduate project/c++/sequances.txt
+	std::cin.get(str, 256);
+	std::ifstream in(str);     // open file
+	////////////////cheak if file open or not
+	if (!in)
+	{
+		std::cerr << "Error: can't open file\n";
+		return -1;
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//initialization string each string have different line from file
+	int counter = 0;//number of lines in file 
+	if (in.is_open())
+	{
+		while (getline(in, x))
+		{
+			seq[counter] = x;
+			counter++;
+		}
+		counter = counter - 1;
+	};
+	in.close();                // close file
+//////////////////////////////////////////////////////////////////////////////////////////////////	
+	//print string have all sequences
+	cout << "Please, enter the length of motif nuclutide = ";
+	cin >> cut;
+	cout << "The initial sequences in strings " << endl;
+	for (int j = 0;seq[j] != "\0";j++)//print all sequences in file(all lines)
+	{
+		cout << seq[j] << endl;
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//the new strings with random cut from original sequences
+	while (true)
+	{
+		for (int Q = 0;Q < counter;Q++)
+		{//for Q is number of string in file(sequences)
+			cout << "The motifs with random cut from original sequences." << endl;
+			for (int o = 0;o < counter ;o++)
+			{
+				if (o == Q)continue;
+				if (o < Q) {
+					cout << random[o] << endl;
+					continue;
+				}
+
+				if (seq[o].length() - cut - 1 <= 0)////////////////////the if to cheak if randoms can applied on sequances or not
+				{
+					cout << "--The sequance equal or less than the cut random--" << endl;
+					return 1;
+				}
+				srand((unsigned int)time(NULL));
+				int ran = (rand() % (seq[o].length() - cut -1));//randome function give me from (0-(length-cut-1)) rand position cut
+				random[o] = seq[o].substr(ran, cut);//save seq after cut from random to fill number of cut
+				//remover randome from all sequences
+				reminder[o] = "";
+				for (int i = 0;i < (int)seq[o].length();i++)//
+					if (i >= cut + ran || i < ran)
+						reminder[o] += seq[o][i];
+
+				cout << random[o] << endl;
+			};
+			////////////////////////////////////////////////////////////////////////////////////////////
+			//the remainder of sequences after cuting
+			cout << "The Remainder of nucleotides after extracting motiefs. " << endl;
+			for (int t = 0;t < counter;t++) {
+				if (t == Q)continue;
+				cout << reminder[t] << endl;
+			}
+
+///////////////////////////////////////the code for save reminder string in new integer string by
+			 ///////////// location and counting the frequancy for each character 
+			cout << "The background frequency of nucleotide." << endl;
+			string temp;
+			for (int i = 0;i < counter;i++)
+			{
+				if (i == Q)continue;
+				temp.append(reminder[i]);
+			}
+			size_t count[256];
+			int background[4] = { 0 };
+			std::fill_n(count, 256, 0);
+			for (unsigned int i = 0; i < temp.length();i++)
+			{
+				char t = temp[i];
+				int ind = uint8_t(t);
+				++count[ind];
+			};//character to index and adding value 1 
+			/////define the array and save the background frequency in this array
+			unsigned int sumbackground = 0;
+			for (int index = 0; index < 256;index++)
+			{
+				if (count[index] && isgraph(index)) // non-zero counts of printable characters
+				{
+					std::cout << char(index) << " = " << count[index] << '\n';
+					if (count[index] != 0) {
+						if (char(index) == 'A')
+							background[0] = count[index];
+						if (char(index) == 'C')
+							background[1] = count[index];
+						if (char(index) == 'G')
+							background[2] = count[index];
+						if (char(index) == 'T')
+							background[3] = count[index];
+						sumbackground += count[index];
+					}
+				}
+			}
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			vector < vector<double>>matrix1(4, vector<double>(cut + 1));//define 2d vector with 4 row and cut of motif +1 and save in first column th background
+			for (int j = 0;j < 4;j++)
+			{
+				matrix1[j][0] = background[j];
+			}
+			int A = 0, C = 0, G = 0, T = 0;
+			for (int i = 0;i < cut;i++)
+			{
+				for (int j = 0;j < counter;j++)
+				{
+if (Q == j)continue;
+					if (random[j][i] == 'A')
+						A++;
+					if (random[j][i] == 'C')
+						C++;
+					if (random[j][i] == 'G')
+						G++;
+					if (random[j][i] == 'T')
+						T++;
+					cout << random[j][i] << " ";
+				}
+				cout << "| A=" << A << " C=" << C << " G=" << G << " T=" << T << endl;
+				matrix1[0][i + 1] = A;
+				matrix1[1][i + 1] = C;
+				matrix1[2][i + 1] = G;
+				matrix1[3][i + 1] = T;
+				A = 0;C = 0;G = 0;T = 0;
+			}
+			//print the full vector after fill that by frequancy for each character A,C,G,T
+			cout << "The matrix of nucleotide frequency by position. " << endl;
+			for (unsigned int i = 0; i < matrix1.size(); i++)
+			{
+				if (i == 0)cout << "A= ";
+				if (i == 1)cout << "C= ";
+				if (i == 2)cout << "G= ";
+				if (i == 3)cout << "T= ";
+				for (unsigned int j = 0; j < matrix1[i].size(); j++)
+				{
+					cout << matrix1[i][j] << " |";
+				}
+				cout << endl;
+			}
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			//the matrix will applied the main equation of gibbs algorithm with threshold 0.5
+			cout << "The matrix after applied probability equation: " << endl;
+			for (unsigned int i = 0;i < matrix1.size();i++)
+			{
+				if (i == 0)cout << "A= ";
+				if (i == 1)cout << "C= ";
+				if (i == 2)cout << "G= ";
+				if (i == 3)cout << "T= ";
+				for (unsigned int j = 0;j < matrix1[i].size();j++)
+				{
+					if (j == 0)
+						matrix1[i][j] = ((matrix1[i][j] + 0.5) / (sumbackground + 2));
+					if (j != 0)
+						matrix1[i][j] = ((matrix1[i][j] + 0.5) / (5));
+					cout << setprecision(3) << fixed;
+					cout << matrix1[i][j] << " |";
+}
+				cout << endl;
+			}
+			/////////////////////////////////////////////////////////////////////////////////////////////////////
+			//size of one sequences in line number of charachter (nucluotide)in line ///////////////
+			string y;
+			y = seq[Q];
+			char* p;
+			int u = 0;
+			p = &y[0]; 
+			for (unsigned int i = 0;i < seq->size();i++)
+			{
+				p[i]++;
+				u++;
+			}
+			cout << "Number of nuclutide in each sequances= " << u << endl;
+			///////////////////////////////////////calculate each position with wight and saved in weight matrix
+			vector <double>weight(u - cut + 1);
+			vector<double>normalize(u - cut + 1);
+			double one = 0, two = 0, three = 0, four = 0;
+			int i = 0;
+			string q;
+			double sumofnormalization = 0;
+			while (i < u - cut + 1)
+			{
+				q = seq[Q].substr(i, cut);
+				for (int k = 0;k < cut;k++)
+				{
+					if (q[k] == 'A')
+					{
+						if (one != 0)
+							one *= matrix1[0][k + 1] / matrix1[0][0];
+						else
+							one = matrix1[0][k + 1] / matrix1[0][0];
+					}
+					if (q[k] == 'C')
+					{
+						if (two != 0)
+							two *= matrix1[1][k + 1] / matrix1[1][0];
+						else
+							two = matrix1[1][k + 1] / matrix1[1][0];
+					}
+					if (q[k] == 'G')
+					{
+						if (three != 0)
+							three *= matrix1[2][k + 1] / matrix1[2][0];
+				else
+							three = matrix1[2][k + 1] / matrix1[2][0];
+					}
+					if (q[k] == 'T')
+					{
+						if (four != 0)
+							four *= matrix1[3][k + 1] / matrix1[3][0];
+						else
+							four = matrix1[3][k + 1] / matrix1[3][0];
+					}
+					weight[i] = one * two * three * four;
+				}
+				cout << setprecision(3) << fixed;
+				cout << weight[i] << " = ";
+				sumofnormalization += weight[i];
+				cout << seq[Q].substr(i, cut) << endl;
+				one = 0, two = 0, three = 0, four = 0;
+				i++;
+			}
+			//normalization for number each position divided sum of wieght
+			cout << "sum of position with weigt = " << sumofnormalization << endl;
+			cout << "The normalization values: " << endl;
+			for (unsigned i = 0;i < (int)normalize.size();i++)
+			{
+				normalize[i] = weight[i] / sumofnormalization;
+				cout << normalize[i] << " - ";
+			}
+			/////////////////////////////////////////////////////////////////////////////////////////////
+			//change the normalization to the intger number and save in new vector name distrbution
+			vector <int>distrbution;
+			for (int i = 0;i < (int)normalize.size();i++)
+			{
+				distrbution.push_back(int(double(normalize[i] * 1000)));
+				//cout << distrbution[i] << " ";
+			}
+			cout << endl;
+			/////////////////////////////////////////////////////////////////////////////////
+			int size2 = 0;//sum of all value from 1000
+			for (int i = 0;i < (int)distrbution.size();i++)
+				size2 = size2 + distrbution[i];
+			
+			vector<int >newdistrbution(size2);
+			int j = 0;int o = 0;
+			for (int i = 0;i < (int)distrbution.size();i++)
+			{
+				for (int k = 0;k < distrbution[i];k++)
+				{
+					newdistrbution[j] = o;
+		j++;
+				}
+				o++;
+			}
+			srand(unsigned(time(NULL)));
+			int nor = rand() % newdistrbution.size();
+			now[Q] = newdistrbution[nor];
+			random[Q] = seq[Q].substr(newdistrbution[nor], cut);
+			reminder[Q] = "";
+			for (int i = 0;i < (int)seq[Q].length();i++)
+				if (i >= cut + newdistrbution[nor] || i < newdistrbution[nor])
+					reminder[Q] += seq[Q][i];
+			cout << "This is the random selection after distrubtion of result (position=";
+			cout << newdistrbution[nor] << " -> " << random[Q] << ")" << endl;
+		}
+		if (ok) {
+			for (int i = 0;i < counter;i++)
+			{
+				if (now[i] != prviousArray[i])
+					break;
+				if (i == (counter-1))
+				{
+					cout <<"This is the motif " << endl; 
+					for(int t=0;t<counter;t++)
+					cout<<random[t] << endl;
+					return 0;
+				}
+		    }
+		}
+		for (int i = 0;i < counter;i++)
+			prviousArray[i] = now[i];
+		ok = true;
+    }
+	return 0;
+}
