@@ -44,5 +44,5 @@ CGGAATGCAT
 
 If you use this repository, please cite:
 
-Akram Ayman.
+Akram Abushmais.
 
