@@ -39,5 +39,10 @@ CGGAATGCAT
 
 ### 2) choose random initial position of motif
 
+---
+## Citation 
 
+If you use this repository, please cite:
+
+Akram Ayman.
 
